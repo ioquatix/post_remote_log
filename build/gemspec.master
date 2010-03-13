@@ -1,0 +1,24 @@
+
+Dir.chdir("../") do
+  require 'lib/post_remote_log/version'
+
+  Gem::Specification.new do |s|
+    s.name = "post_remote_log"
+    s.version = PostRemoteLog::VERSION::STRING
+    s.date = "2010-03-13"
+    s.summary = "A simple messaging system built on top of Ruby, designed for system administration."
+    s.homepage = "http://www.oriontransfer.co.nz/software/post-remote-log"
+    s.has_rdoc = true
+    s.authors = ["Samuel Williams"]
+    s.files = FileList["{lib,test,bin}/**/*"] + ["README.rdoc"]
+
+    s.executables << "post-remote-log"
+    s.executables << "post-remote-log-server"
+
+    s.extra_rdoc_files = ["README.rdoc"]
+    s.rdoc_options << '--main' << 'README.rdoc'
+
+    s.add_dependency("rexec")
+  end
+end
+
