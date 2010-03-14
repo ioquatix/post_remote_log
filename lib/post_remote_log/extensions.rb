@@ -1,4 +1,5 @@
-# Copyright (c) 2009 Samuel Williams. Released under the GNU GPLv3.
+
+# Copyright (c) 2010 Samuel Williams. Released under the GNU GPLv3.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,22 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module PostRemoteLog
-	
-	# Builds an XML formatted message from the supplied values
-	def self.build_xml_message (values)
-		message = SimpleXMLBuilder.new
-
-		message.instruct!
-
-		message.tag("remote_log") do
-			[:classification, :uptime, :system, :hostname, :address, :report].each do |key|
-				message.value key.to_s, values[key]
-			end
-		end
-
-		return message
-	end
-
-	
+module HashExtensions
+  def symbolize_keys
+    inject({}) do |acc, (k,v)|
+      key = String === k ? k.to_sym : k
+      value = Hash === v ? v.symbolize_keys : v
+      acc[key] = value
+      acc
+    end
+  end
 end
+
+Hash.send(:include, HashExtensions)

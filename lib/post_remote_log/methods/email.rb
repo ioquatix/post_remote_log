@@ -22,78 +22,76 @@ module PostRemoteLog
 
 		class Email
 			def self.send(config, values)
-				if (config[:enabled])
-					message = PostRemoteLog.build_xml_message(values)
+				message = PostRemoteLog.build_xml_message(values)
 
-					email = StringIO.new
-					marker = Digest::MD5.hexdigest(Time.now.to_s)
+				email = StringIO.new
+				marker = Digest::MD5.hexdigest(Time.now.to_s)
 
-					from = "#{values[:user]}@#{values[:hostname]}"
-					to = config[:to]
+				from = "#{values[:user]}@#{values[:hostname]}"
+				to = config[:to]
 
-					email.puts "From: #{from}"
-					email.puts "To: #{to}"
-					email.puts "Subject: Remote Log: #{values[:classification]}"
-					email.puts "MIME-Version: 1.0"
-					email.puts "Content-Type: multipart/mixed; boundary=#{marker}"
-					email.puts
-					email.puts "--#{marker}"
-					email.puts "Content-Type: text/plain"
-					email.puts "Content-Transfer-Encoding: 8bit"
-					email.puts
-					email.puts "A remote log was created and sent at #{Time.now.to_s}. Here are the details:"
-					
-					[:classification, :user, :uptime, :system, :hostname, :address].each do |key|
-						email.puts "\t#{key}: #{values[key]}"
-					end
-					
-					email.puts
-					
-					email.puts values[:report]
-					
-					email.puts
-					email.puts
-					email.puts "--#{marker}"
-					email.puts "Content-Type: text/xml; name=\"remote_log.xml\""
-					email.puts "Content-Transfer-Encoding:base64"
-					email.puts "Content-Disposition: attachment; filename=\"remote_log.xml\""
-					email.puts
-					
-					email.puts [message.string].pack("m")
-					
-					email.puts
-					email.puts "--#{marker}"
-					email.puts "Content-Type: text/plain; name=\"report.txt\""
-					email.puts "Content-Transfer-Encoding:base64"
-					email.puts "Content-Disposition: attachment; filename=\"report.txt\""
-					email.puts
-					
-					email.puts [values[:report]].pack("m")
-					
-					email.puts "--#{marker}--"
+				email.puts "From: #{from}"
+				email.puts "To: #{to}"
+				email.puts "Subject: Remote Log: #{values[:classification]}"
+				email.puts "MIME-Version: 1.0"
+				email.puts "Content-Type: multipart/mixed; boundary=#{marker}"
+				email.puts
+				email.puts "--#{marker}"
+				email.puts "Content-Type: text/plain"
+				email.puts "Content-Transfer-Encoding: 8bit"
+				email.puts
+				email.puts "A remote log was created and sent at #{Time.now.to_s}. Here are the details:"
+				
+				[:classification, :user, :uptime, :system, :hostname, :address].each do |key|
+					email.puts "\t#{key}: #{values[key]}"
+				end
+				
+				email.puts
+				
+				email.puts values[:report]
+				
+				email.puts
+				email.puts
+				email.puts "--#{marker}"
+				email.puts "Content-Type: text/xml; name=\"remote_log.xml\""
+				email.puts "Content-Transfer-Encoding:base64"
+				email.puts "Content-Disposition: attachment; filename=\"remote_log.xml\""
+				email.puts
+				
+				email.puts [message.string].pack("m")
+				
+				email.puts
+				email.puts "--#{marker}"
+				email.puts "Content-Type: text/plain; name=\"report.txt\""
+				email.puts "Content-Transfer-Encoding:base64"
+				email.puts "Content-Disposition: attachment; filename=\"report.txt\""
+				email.puts
+				
+				email.puts [values[:report]].pack("m")
+				
+				email.puts "--#{marker}--"
 
-					smtp = Net::SMTP.new(config[:host], config[:port])
-					
-					begin
-						if config[:tls]
-							unless smtp.respond_to? :enable_starttls
-								raise ArgumentError.new("STARTTLS is not supported by this version of Ruby.")
-							end
-							
-							context = Net::SMTP.default_ssl_context
-							context.verify_mode = OpenSSL::SSL::VERIFY_NONE
-							
-							smtp.enable_starttls(context)
+				smtp = Net::SMTP.new(config[:host], config[:port])
+				
+				begin
+					if config[:tls]
+						unless smtp.respond_to? :enable_starttls
+							raise ArgumentError.new("STARTTLS is not supported by this version of Ruby.")
 						end
 						
-						smtp.start(values[:hostname], config[:user], config[:pass], config[:auth])
+						context = Net::SMTP.default_ssl_context
+						context.verify_mode = OpenSSL::SSL::VERIFY_NONE
 						
-						smtp.sendmail(email.string, from, [to])
-						
-						$stderr.puts "Remote log created successfully."
-					ensure
-						smtp.finish
+						smtp.enable_starttls(context)
 					end
+					
+					smtp.start(values[:hostname], config[:user], config[:pass], config[:auth])
+					
+					smtp.sendmail(email.string, from, [to])
+					
+					$stderr.puts "Remote log created successfully."
+				ensure
+					smtp.finish
 				end
 			end
 		end

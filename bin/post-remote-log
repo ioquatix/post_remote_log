@@ -15,8 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'post_remote_log/simple_xml'
+if ARGV.delete("-d")
+	exec("daemon-exec", "--stdin", "--", $0, *ARGV)
+end
 
+require 'post_remote_log'
+require 'post_remote_log/simple_xml'
 require 'post_remote_log/methods/xmlrpc'
 require 'post_remote_log/methods/email'
 
@@ -24,21 +28,7 @@ require 'yaml'
 
 OPTIONS = {
 	:config => "/etc/post-remote-log.conf",
-	:defaults => {
-		:xmlrpc => {
-			:enabled => false,
-			:host => "remote-logs",
-			:port => 9080,
-			:path => "/post-remote-log"
-		},
-		:email => {
-			:enabled => false,
-			:host => "mail",
-			:port => "25",
-			:to => "root@localhost"
-		},
-		:classification => "Generic Log"
-	}
+	:verbose => false
 }
 
 ARGV.options do |o|
@@ -47,58 +37,59 @@ ARGV.options do |o|
 	o.set_summary_indent("\t")
 	o.banner = "Usage: #{script_name} [options] [classification] < log-data.txt"
 	o.define_head "Copyright (c) 2010 Samuel Williams <http://www.oriontransfer.co.nz/>."
-	
+
 	o.on("-c config.yaml", String, "Configuration file; defaults to #{OPTIONS[:config]}") do |path|
 		OPTIONS[:config] = path
 	end
-	
-	o.on("-d config.yaml", String, "Write out the default configuration file so that it can be customized.") do |path|
-		File.open(path, "w") { |f| f.write(YAML::dump(OPTIONS[:defaults])) }
-		exit
+
+	o.on("-v", "Verbose operation") do
+		options[:verbose] = true
 	end
 end.parse!
 
 # Load the configuration
-$config = OPTIONS[:defaults].dup
-$config = YAML::load(File.read(OPTIONS[:config])) if File.exists?(OPTIONS[:config])
-
-# If there are no enabled logging services:
-if (($config[:email][:enabled] || $config[:xmlrpc][:enabled]) == false)
-  STDERR.puts "Warning: No methods of sending logs enabled. Log is being ignored!"
-  exit(1)
+if File.exists?(OPTIONS[:config])
+	$config = YAML::load(File.read(OPTIONS[:config])).symbolize_keys
+	$config[:classification] ||= "Generic Log"
+else
+	$stderr.puts "Error: Could not load configuration file #{OPTIONS[:config]}!"
+	raise
 end
 
 # Read the log information from stdin:
-report = STDIN.read.strip
-STDIN.close
+report = $stdin.read.strip
+$stdin.close
 
 if report.size == 0
-  # Exit if there was no report
-  STDERR.puts "No report supplied, exiting!"
-  exit 1
+	$stderr.puts "Error: No report supplied, exiting!"
+	exit(1)
 end
 
 # Build a set of important values which will be logged:
 $values = {
-  :classification => ARGV[0] || $config["classification"],
-  :uptime => `uptime`.strip,
-  :system => `uname -a`.strip,
-  :hostname => `hostname`.strip,
-  :address => `ifconfig`.match(/[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}/i)[0],
-  :user => `whoami`.strip,
-  :report => report
+	:classification => ARGV[0] || $config[:classification],
+	:uptime => `uptime`.strip,
+	:system => `uname -a`.strip,
+	:hostname => `hostname`.strip,
+	:address => `ifconfig`.match(/[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}:[0-9a-z]{2}/i)[0],
+	:user => `whoami`.strip,
+	:report => report
 }
 
-begin
-	PostRemoteLog::Methods::Email.send($config[:email], $values)
-rescue => ex
-  puts ex.to_s
-  puts ex.backtrace
-end
+$methods = {
+	:xmlrpc => PostRemoteLog::Methods::XMLRPC,
+	:email => PostRemoteLog::Methods::Email
+}
 
-begin
-	PostRemoteLog::Methods::XMLRPC.send($config[:xmlrpc], $values)
-rescue => ex
-  puts ex.to_s
-  puts ex.backtrace
+$config[:methods].values.each do |config|
+	begin
+		next if config[:disabled] == true
+
+		method = $methods[config[:method].to_sym]
+
+		method.send(config, $values)
+	rescue => ex
+		puts ex.to_s
+		puts ex.backtrace
+	end
 end

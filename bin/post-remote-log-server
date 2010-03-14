@@ -17,7 +17,10 @@
 
 require 'rack'
 require 'thin'
+
+require 'post_remote_log'
 require 'post_remote_log/server'
+
 
 OPTIONS = {
 	:host => "0.0.0.0",
