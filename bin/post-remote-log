@@ -27,8 +27,7 @@ require 'post_remote_log/methods/email'
 require 'yaml'
 
 OPTIONS = {
-	:config => "/etc/post-remote-log.conf",
-	:verbose => false
+	:config => "/etc/post-remote-log.conf"
 }
 
 ARGV.options do |o|
@@ -42,8 +41,8 @@ ARGV.options do |o|
 		OPTIONS[:config] = path
 	end
 
-	o.on("-v", "Verbose operation") do
-		options[:verbose] = true
+	o.on("-d", "Run in background as a daemon. Requires daemon-exec.") do
+		# This option is handled above.
 	end
 end.parse!
 

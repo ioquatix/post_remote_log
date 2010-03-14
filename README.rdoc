@@ -13,6 +13,16 @@ PostRemoteLog is very simple and all behavior is controlled using a configuratio
 	$ echo "The user has logged in ($seconds)" > post-remote-log "User Event"
 	$ echo "The user has logged out" > post-remote-log "User Event"
 
+The configuration file used by default is <tt>/etc/post-remote-log.yaml</tt> but can be specified using <tt>-c</tt> option.
+
+	$ echo "The user has logged out" > post-remote-log -c specific-config.yaml "User Event"
+
+The command also integrates directly with <tt>daemon-exec</tt>. Ensure that rexec is installed before using this option.
+
+	$ echo "The user has logged out" > post-remote-log -d -c specific-config.yaml "User Event"
+
+This command will relaunch itself using <tt>daemon-exec</tt> which allows the command to run seemlessly in the event of a network outage. The main use for this is when post-remote-log is used in login and logout scripts, which shouldn't be delayed if the network is slow.
+
 Included with this package is a basic rack backend which can be used to aggregate the XMLRPC messages into a directory. This can be used for testing and evaluation. However, there is a web interface under development which stores information in a database.
 
 To use the simple backend, you need to install thin:
