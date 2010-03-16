@@ -23,7 +23,7 @@ module PostRemoteLog
 				g = ::Growl.new(config[:host], "PostRemoteLog", [values[:classification]], [values[:classification]], config[:password])
 				
 				message = StringIO.new
-				[:classification, :uptime, :system, :hostname, :address].each do |key|
+				[:uptime, :system, :hostname, :address].each do |key|
 					message.puts "[#{key}] #{values[key]}"
 				end
 				
