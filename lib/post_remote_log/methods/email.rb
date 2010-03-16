@@ -14,12 +14,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'post_remote_log/xml'
+
 require 'net/smtp'
 require 'digest'
 
 module PostRemoteLog
 	module Methods
-
+		
 		class Email
 			def self.send(config, values)
 				message = PostRemoteLog.build_xml_message(values)
@@ -70,8 +71,16 @@ module PostRemoteLog
 				email.puts [values[:report]].pack("m")
 				
 				email.puts "--#{marker}--"
-
-				smtp = Net::SMTP.new(config[:host], config[:port])
+				
+				port = 25
+				
+				if config[:tls]
+					port = 587
+				end
+				
+				port = config[:port] || port
+				
+				smtp = Net::SMTP.new(config[:host], port)
 				
 				begin
 					if config[:tls]
@@ -85,17 +94,22 @@ module PostRemoteLog
 						smtp.enable_starttls(context)
 					end
 					
-					smtp.start(values[:hostname], config[:user], config[:pass], config[:auth])
+					auth = config[:auth] ? config[:auth].to_sym : nil
+					auth ||= :plain if config[:password]
+					
+					smtp.start(values[:hostname], config[:user], config[:password], auth)
 					
 					smtp.sendmail(email.string, from, [to])
-					
-					$stderr.puts "Remote log created successfully."
 				ensure
-					smtp.finish
+					if smtp.started?
+						smtp.finish
+					end
 				end
 			end
 		end
-
+		
+		@@methods[:email] = Email
+		
 	end
 end
 
