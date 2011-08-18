@@ -23,6 +23,7 @@ require 'post_remote_log'
 require 'post_remote_log/methods'
 
 require 'yaml'
+require 'optparse'
 
 OPTIONS = {
 	:config => "/etc/post-remote-log.conf",
