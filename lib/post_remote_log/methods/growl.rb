@@ -26,15 +26,15 @@ module PostRemoteLog
 		class Growl
 			def self.send(config, values)
 				g = ::Growl.new(config[:host], "PostRemoteLog", [values[:classification]], [values[:classification]], config[:password])
-				
+
 				message = StringIO.new
 				[:uptime, :system, :hostname, :address].each do |key|
 					message.puts "[#{key}] #{values[key]}"
 				end
-				
+
 				message.puts
 				message.puts values[:report]
-				
+
 				g.notify(values[:classification], "Remote Log [#{values[:classification]}] from #{values[:hostname]}", message.string, config[:priority] || 0, config[:sticky])
 			end
 		end

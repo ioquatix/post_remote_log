@@ -21,37 +21,37 @@
 require 'stringio'
 
 module PostRemoteLog
-	
+
 	# Very simple XML builder to minimize dependencies:
 	class SimpleXMLBuilder < StringIO
-	  X = {"<" => "&lt;", ">" => "&gt;"}
-  
-	  def initialize
-	    super
-    
-	    @level = 0
-	  end
-  
-	  def instruct!
-	    self.puts '<?xml version="1.0" encoding="UTF-8"?>'
-	  end
-  
-	  def value(name, value)
-	    value.gsub!(/<|>/) { |s| X[s] }
-	    self.puts tab +  "<#{name}>" + value.to_s + "</#{name}>"
-	  end
-  
-	  def tag(name, &block)
-	    self.puts tab + "<#{name}>"
-	    @level += 1
-	    yield
-	    @level -= 1
-	    self.puts tab + "</#{name}>"
-	  end
-  
-	  protected
-	  def tab
-	    ("\t" * @level)
-	  end
+		X = {"<" => "&lt;", ">" => "&gt;"}
+
+		def initialize
+			super
+
+			@level = 0
+		end
+
+		def instruct!
+			self.puts '<?xml version="1.0" encoding="UTF-8"?>'
+		end
+
+		def value(name, value)
+			value.gsub!(/<|>/) { |s| X[s] }
+			self.puts tab +  "<#{name}>" + value.to_s + "</#{name}>"
+		end
+
+		def tag(name, &block)
+			self.puts tab + "<#{name}>"
+			@level += 1
+			yield
+			@level -= 1
+			self.puts tab + "</#{name}>"
+		end
+
+		protected
+		def tab
+			("\t" * @level)
+		end
 	end
 end

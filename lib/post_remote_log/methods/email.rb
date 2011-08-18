@@ -25,7 +25,7 @@ require 'digest'
 
 module PostRemoteLog
 	module Methods
-		
+
 		class Email
 			def self.send(config, values)
 				message = PostRemoteLog.build_xml_message(values)
@@ -47,15 +47,15 @@ module PostRemoteLog
 				email.puts "Content-Transfer-Encoding: 8bit"
 				email.puts
 				email.puts "A remote log was created and sent at #{Time.now.to_s}. Here are the details:"
-				
+
 				[:classification, :user, :uptime, :system, :hostname, :address].each do |key|
 					email.puts "\t#{key}: #{values[key]}"
 				end
-				
+
 				email.puts
-				
+
 				email.puts values[:report]
-				
+
 				email.puts
 				email.puts
 				email.puts "--#{marker}"
@@ -63,47 +63,47 @@ module PostRemoteLog
 				email.puts "Content-Transfer-Encoding:base64"
 				email.puts "Content-Disposition: attachment; filename=\"remote_log.xml\""
 				email.puts
-				
+
 				email.puts [message.string].pack("m")
-				
+
 				email.puts
 				email.puts "--#{marker}"
 				email.puts "Content-Type: text/plain; name=\"report.txt\""
 				email.puts "Content-Transfer-Encoding:base64"
 				email.puts "Content-Disposition: attachment; filename=\"report.txt\""
 				email.puts
-				
+
 				email.puts [values[:report]].pack("m")
-				
+
 				email.puts "--#{marker}--"
-				
+
 				port = 25
-				
+
 				if config[:tls]
 					port = 587
 				end
-				
+
 				port = config[:port] || port
-				
+
 				smtp = Net::SMTP.new(config[:host], port)
-				
+
 				begin
 					if config[:tls]
 						unless smtp.respond_to? :enable_starttls
 							raise ArgumentError.new("STARTTLS is not supported by this version of Ruby.")
 						end
-						
+
 						context = Net::SMTP.default_ssl_context
 						context.verify_mode = OpenSSL::SSL::VERIFY_NONE
-						
+
 						smtp.enable_starttls(context)
 					end
-					
+
 					auth = config[:auth] ? config[:auth].to_sym : nil
 					auth ||= :plain if config[:password]
-					
+
 					smtp.start(values[:hostname], config[:user], config[:password], auth)
-					
+
 					smtp.sendmail(email.string, from, [to])
 				ensure
 					if smtp.started?
@@ -112,9 +112,8 @@ module PostRemoteLog
 				end
 			end
 		end
-		
+
 		@@methods[:email] = Email
-		
+
 	end
 end
-
