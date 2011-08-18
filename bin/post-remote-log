@@ -41,7 +41,7 @@ ARGV.options do |o|
 		OPTIONS[:config] = path
 	end
 
-	o.on("-d", "Run in background as a daemon. Requires daemon-exec.") do
+	o.on("-d", "Run in background as a daemon.") do
 		# This option is handled above.
 	end
 	
@@ -56,7 +56,7 @@ if File.exists?(OPTIONS[:config])
 	$config[:classification] ||= "Generic Log"
 else
 	$stderr.puts "Error: Could not load configuration file #{OPTIONS[:config]}!"
-	raise
+	exit 255
 end
 
 # Read the log information from stdin:
