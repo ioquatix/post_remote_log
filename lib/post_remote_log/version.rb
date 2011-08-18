@@ -19,11 +19,11 @@
 # THE SOFTWARE.
 
 module PostRemoteLog
-  module VERSION #:nodoc:
-    MAJOR = 1
-    MINOR = 7
-    TINY  = 0
+	module VERSION #:nodoc:
+		MAJOR = 1
+		MINOR = 7
+		TINY  = 1
 
-    STRING = [MAJOR, MINOR, TINY].join('.')
-  end
+		STRING = [MAJOR, MINOR, TINY].join('.')
+	end
 end
