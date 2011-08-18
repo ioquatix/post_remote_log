@@ -1,24 +1,22 @@
 
 Dir.chdir("../") do
-  require 'lib/post_remote_log/version'
+	require 'lib/post_remote_log/version'
 
-  Gem::Specification.new do |s|
-    s.name = "post_remote_log"
-    s.version = PostRemoteLog::VERSION::STRING
-    s.date = "2010-03-13"
-    s.summary = "A simple messaging system built on top of Ruby, designed for system administration."
-    s.homepage = "http://www.oriontransfer.co.nz/software/post-remote-log"
-    s.has_rdoc = true
-    s.authors = ["Samuel Williams"]
-    s.files = FileList["{lib,test,bin}/**/*"] + ["README.rdoc"]
+	Gem::Specification.new do |s|
+		s.name = "post_remote_log"
+		s.version = PostRemoteLog::VERSION::STRING
+		s.author = "Samuel Williams"
+		s.email = "samuel@oriontransfer.org"
+		s.homepage = "http://www.oriontransfer.co.nz/gems/post_remote_log"
+		s.summary = "A simple messaging system built on top of Ruby, designed for system administration."
+		s.files = FileList["{lib,test,bin}/**/*"] + ["README.md"]
 
-    s.executables << "post-remote-log"
-    s.executables << "post-remote-log-server"
+		s.executables << "post-remote-log"
+		s.executables << "post-remote-log-server"
 
-    s.extra_rdoc_files = ["README.rdoc"]
-    s.rdoc_options << '--main' << 'README.rdoc'
+		s.add_dependency("rexec")
 
-    s.add_dependency("rexec")
-  end
+		s.has_rdoc = "yard"
+	end
 end
 
